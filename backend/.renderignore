@@ -1,0 +1,12 @@
+**/__pycache__/**
+**/.venv/**
+**/venv/**
+node_modules/**
+**/*.log
+**/.env
+**/.env.*
+**/.git/**
+**/.DS_Store
+**/db.sqlite3
+media/*
+!media/.gitkeep
