@@ -1,44 +1,52 @@
-from transformers import BlipProcessor, BlipForConditionalGeneration
-from PIL import Image
+import openai
+import base64
 import io
-import time
-import torch
+from PIL import Image
+import os
 
 class CaptionService:
     def __init__(self):
-        self.processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-        self.model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+        # Initialize OpenAI client
+        openai.api_key = os.environ.get('OPENAI_API_KEY')
+        if not openai.api_key:
+            print("Warning: OPENAI_API_KEY not found. Caption generation will not work.")
 
     def generate_caption(self, image_file):
-        # Ensure the file pointer is at the start
         try:
+            # Ensure the file pointer is at the start
             image_file.seek(0)
-        except Exception:
-            pass
-        raw_image = Image.open(io.BytesIO(image_file.read())).convert('RGB')
-        
-        # conditional image captioning
-        # text = "a photography of"
-        # inputs = self.processor(raw_image, text, return_tensors={"pt": True})
-
-        # unconditional image captioning
-        # Use correct API: return_tensors should be a string like "pt"
-        inputs = self.processor(raw_image, return_tensors="pt")
-
-        # Add stochastic decoding so Regenerate yields different captions
-        # Set a different seed each call
-        try:
-            torch.manual_seed(int(time.time() * 1000) % (2**31 - 1))
-        except Exception:
-            pass
-        out = self.model.generate(
-            **inputs,
-            max_new_tokens=30,
-            do_sample=True,
-            top_p=0.9,
-            temperature=0.8,
-            repetition_penalty=1.1,
-            num_beams=1,
-        )
-        caption = self.processor.decode(out[0], skip_special_tokens=True)
-        return caption
+            
+            # Convert image to base64
+            image_data = image_file.read()
+            base64_image = base64.b64encode(image_data).decode('utf-8')
+            
+            # Use OpenAI Vision API for image captioning
+            response = openai.ChatCompletion.create(
+                model="gpt-4-vision-preview",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Generate a creative, engaging caption for this image that would be perfect for social media. Make it descriptive, interesting, and under 100 words."
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{base64_image}"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                max_tokens=150
+            )
+            
+            caption = response.choices[0].message.content.strip()
+            return caption
+            
+        except Exception as e:
+            print(f"Error generating caption with OpenAI: {e}")
+            # Fallback to a simple description
+            return "A beautiful image that tells a story worth sharing."
