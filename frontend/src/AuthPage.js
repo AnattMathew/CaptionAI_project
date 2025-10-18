@@ -25,8 +25,8 @@ function AuthPage({ setAuthToken }) {
 
     const url = isLogin ? `${API_BASE_URL}/auth/login/` : `${API_BASE_URL}/auth/registration/`;
     const body = isLogin
-      ? { email, password, username: '' }
-      : { username: '', email, password1: password, password2: password2 };
+      ? { username: email, password }
+      : { username: email, password1: password, password2: password2 };
 
     try {
       const response = await fetch(url, {
