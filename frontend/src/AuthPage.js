@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_BASE_URL } from './config';
 import './AuthPage.css';
 
 function AuthPage({ setAuthToken }) {
@@ -22,7 +23,7 @@ function AuthPage({ setAuthToken }) {
     setLoading(true);
     setError(null);
 
-    const url = isLogin ? "/api/auth/login/" : "/api/auth/registration/";
+    const url = isLogin ? `${API_BASE_URL}/auth/login/` : `${API_BASE_URL}/auth/registration/`;
     const body = isLogin
       ? { email, password, username: '' }
       : { username: '', email, password1: password, password2: password2 };
