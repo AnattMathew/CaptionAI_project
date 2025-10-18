@@ -16,10 +16,10 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Google Cloud credentials
-os.environ.setdefault('GOOGLE_APPLICATION_CREDENTIALS', 'C:\\keys\\gcp-translate.json')
+# Google Cloud credentials - will be set via environment variables in production
+# os.environ.setdefault('GOOGLE_APPLICATION_CREDENTIALS', 'C:\\keys\\gcp-translate.json')
 
-# Instagram API credentials (replace with your actual values)
+# Instagram API credentials - will be set via environment variables in production
 # Get these from Facebook Business Manager and Facebook Developers
 # Example: os.environ.setdefault('IG_BUSINESS_ACCOUNT_ID', '17841400000000000')
 # Example: os.environ.setdefault('INSTAGRAM_ACCESS_TOKEN', 'IGQVJ...')
@@ -103,7 +103,7 @@ REST_AUTH = {
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware", # Moved to the top
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Enabled for production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'allauth.account.middleware.AccountMiddleware', 
     'django.middleware.common.CommonMiddleware',
@@ -137,12 +137,30 @@ WSGI_APPLICATION = 'captionai_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Database configuration
+if os.environ.get('DATABASE_URL'):
+    # Production database (PostgreSQL on Render)
+    try:
+        import dj_database_url
+        DATABASES = {
+            'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
+        }
+    except ImportError:
+        # Fallback to SQLite if dj_database_url is not available
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
+else:
+    # Development database (SQLite)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
 
 
 # Password validation
@@ -181,7 +199,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # Enabled for production
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

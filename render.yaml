@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: captionai-backend
+    env: python
+    plan: free
+    buildCommand: "cd backend && pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput"
+    startCommand: "cd backend && gunicorn captionai_backend.wsgi:application"
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: "captionai-backend.onrender.com"
+      - key: RENDER_EXTERNAL_URL
+        value: "https://captionai-backend.onrender.com"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        sync: false
+      - key: IG_BUSINESS_ACCOUNT_ID
+        value: "your_instagram_business_account_id"
+      - key: INSTAGRAM_ACCESS_TOKEN
+        value: "your_instagram_access_token"
+
+  - type: web
+    name: captionai-frontend
+    env: static
+    plan: free
+    buildCommand: "cd frontend && npm install && npm run build"
+    staticPublishPath: "./frontend/build"
+    routes:
+      - type: rewrite
+        source: "/*"
+        destination: "/index.html"

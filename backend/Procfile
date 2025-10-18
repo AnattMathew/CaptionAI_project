@@ -1,1 +1,1 @@
-web: gunicorn captionai_backend.wsgi:application --preload --log-file -
+web: gunicorn captionai_backend.wsgi:application

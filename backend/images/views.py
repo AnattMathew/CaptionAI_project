@@ -66,6 +66,7 @@ class GenerateCaptionView(APIView):
         try:
             caption_service = get_caption_service()
             caption = caption_service.generate_caption(image_instance.image)
+            image_instance.original_caption = caption  # Store original caption
             image_instance.caption = caption
             image_instance.save()
         except Exception as e:
@@ -88,11 +89,12 @@ class StyleCaptionView(APIView):
         except ImageUpload.DoesNotExist:
             return Response({'error': 'Image not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        if not image_instance.caption:
+        if not image_instance.original_caption:
             return Response({'error': 'No caption to style. Generate caption first.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            styled = CaptionStylingService().style_caption(image_instance.caption, style)
+            # Always style from the original caption to avoid cumulative styling
+            styled = CaptionStylingService().style_caption(image_instance.original_caption, style)
             image_instance.caption_style = style
             image_instance.caption = styled
             image_instance.save()
@@ -170,7 +172,17 @@ class ResizeImageView(APIView):
         finally:
             image_instance.image.close()
 
-        return Response(ImageUploadSerializer(image_instance).data, status=status.HTTP_200_OK)
+        # Get the public URL for the resized image
+        request_scheme = request.scheme
+        request_host = request.get_host()
+        public_url = f"{request_scheme}://{request_host}{image_instance.image.url}"
+        
+        return Response({
+            'id': image_instance.id,
+            'image': image_instance.image.url,
+            'public_url': public_url,
+            'target_platform': target_platform
+        }, status=status.HTTP_200_OK)
 
 
 class InstagramShareView(APIView):
