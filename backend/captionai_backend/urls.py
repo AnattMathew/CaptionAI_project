@@ -20,9 +20,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView # Import RedirectView
 from django.views.static import serve as static_serve
+from . import views
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/admin/', permanent=False)), # Redirect root to admin
+    path('', views.api_home, name='api_home'), # API homepage instead of redirect
+    path('health/', views.health_check, name='health_check'),
     path('admin/', admin.site.urls),
     path('api/', include('images.urls')),
     path('api/auth/', include('dj_rest_auth.urls')),
