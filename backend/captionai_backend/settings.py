@@ -75,7 +75,11 @@ SITE_ID = 1
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
 }
 
 # For django-allauth to work properly with email as username
@@ -84,12 +88,11 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-ACCOUNT_AUTHENTICATION_METHOD = "email" # Re-adding for dj_rest_auth compatibility
-ACCOUNT_LOGIN_METHODS = ['email'] # Use modern setting
-ACCOUNT_EMAIL_REQUIRED = True
+# Modern allauth settings
+ACCOUNT_LOGIN_METHODS = ['email']
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None # Explicitly set username field to None
-ACCOUNT_EMAIL_VERIFICATION = 'none' # Or 'mandatory' if you want email verification
 ACCOUNT_ADAPTER = 'images.adapter.CustomAccountAdapter' # Use custom adapter
 
 # For dj-rest-auth to use Simple JWT
