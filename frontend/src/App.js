@@ -28,13 +28,16 @@ function App() {
             </ProtectedRoute>
           }
         >
+          <Route index element={<Navigate to="upload" replace />} />
           <Route path="upload" element={<ImageUploadPage />} />
           <Route path="generate-caption" element={<CaptionGenerationPage />} />
           <Route path="style-caption" element={<CaptionStylingPage />} />
           <Route path="translate-caption" element={<CaptionTranslationPage />} />
           <Route path="resize-image" element={<ImageResizingPage />} />
           <Route path="share-social" element={<SocialSharingPage />} />
+          <Route path="*" element={<Navigate to="upload" replace />} />
         </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
