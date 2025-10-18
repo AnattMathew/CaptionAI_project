@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { API_BASE_URL } from '../config';
 
 function useQuery() {
   const { search } = useLocation();
